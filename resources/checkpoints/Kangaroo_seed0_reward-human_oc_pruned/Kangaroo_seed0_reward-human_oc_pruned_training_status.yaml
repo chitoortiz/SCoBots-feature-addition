@@ -1,0 +1,11 @@
+completed_steps: 20000768
+creation date: '2024-10-18 15:41:30'
+env: 1
+exclude_properties: false
+game: Kangaroo
+normalize: true
+prune: pruned_kangaroo.yaml
+reward: human
+rgbv5: not used
+seed: 0
+status: finished
