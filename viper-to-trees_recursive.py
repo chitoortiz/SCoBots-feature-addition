@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.tree import plot_tree
 
 # Folder where the "Tree-*_best.viper" files are located
-base_folder_path = 'viper_extracts/extract_output'
+base_folder_path = 'resources/viper_extracts/extract_output'
 
 # Get all the .viper files recursively within the base folder
 file_pattern = os.path.join(base_folder_path, '**', 'Tree-*best.viper')
