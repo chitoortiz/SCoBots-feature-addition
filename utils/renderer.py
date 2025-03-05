@@ -22,7 +22,7 @@ class Renderer:
     zoom: int = 4
     fps: int = 20
 
-    def __init__(self, envs, model, path, record=False, nb_frames=0):
+    def __init__(self, envs, model, path, record=False, nb_frames=0, code_version=False):
         self.envs = envs
         if hasattr(envs, 'venv') and hasattr(envs.venv, 'envs'):
             self.env = envs.venv.envs[0]
@@ -34,6 +34,7 @@ class Renderer:
             self.env = envs
             self.rgb_agent = True
         self.model = model
+        self._code_version = code_version
         self.current_frame = self._get_current_frame()
         self._init_pygame(self.current_frame)
         self.paused = False
@@ -73,7 +74,11 @@ class Renderer:
         pygame.display.set_caption("OCAtari Environment")
         sample_image = np.repeat(np.repeat(np.swapaxes(sample_image, 0, 1), self.zoom, axis=0), self.zoom, axis=1)
         self.env_render_shape = sample_image.shape[:2]
-        window_size = self.env_render_shape[:2]
+        if self._code_version is not None:
+            height, width = sample_image.shape[:2]
+            window_size = (width + 300, self.env_render_shape[:2][1])
+        else:
+            window_size = self.env_render_shape[:2]
         self.window = pygame.display.set_mode(window_size)
         self.clock = pygame.time.Clock()      
 
@@ -105,6 +110,70 @@ class Renderer:
             if self.rgb_agent:
                 self.clock.tick(self.fps)
         pygame.quit()
+
+
+    def run_code_version(self):
+        self.running = True
+        obs = self.envs.reset()
+        i = 1
+        while self.running:
+            self._handle_user_input()
+            if not self.paused:
+                # Either human or AI:
+                if self.human_playing:
+                    action = [self._get_action()]
+                else:
+                    action, _ = self.model.predict(obs, deterministic=True)
+                obs, rew, done, infos = self.envs.step(action)
+                self.env.sco_obs = obs
+                self.current_frame = self._get_current_frame()
+                if done:
+                    obs = self.envs.reset()
+            self._render_code_version()
+            i += 1
+            pygame.display.flip()
+            pygame.event.pump()
+        pygame.quit()
+
+    def _render_code_version(self, frame=None):
+        self.window.fill((0,0,0))  # black background
+        self._render_atari(frame)
+
+        x_offset = self.env_render_shape[1] + 10
+
+        y_offset = 10
+
+        # write headline and centering
+        text_region_width = 300
+        text_area_center_x = x_offset + text_region_width // 6
+
+        headline = "Decision Path if-Checks"
+        headline_font = pygame.font.SysFont(None, 50)
+        headline_color = (255, 255, 0)
+        headline_surface = headline_font.render(headline, True, headline_color)
+
+        # Center the headline
+        headline_rect = headline_surface.get_rect()
+        # top is y_offset
+        headline_rect.top = y_offset
+        headline_rect.centerx = text_area_center_x
+
+        self.window.blit(headline_surface, headline_rect)
+
+        y_offset = 70
+
+        # write each line of path
+        if hasattr(self.model, 'decision_path'):
+            line_height = 50
+            for line in self.model.decision_path:
+                self._draw_text(line, self.env_render_shape[0] + 10, y_offset, font_size=37)
+                y_offset += line_height
+
+
+    def _draw_text(self, text, x, y, color=(255,255,255), font_size=18):
+        font = pygame.font.SysFont(None, font_size)
+        text_surface = font.render(text, True, color)
+        self.window.blit(text_surface, (x, y))
 
     def _get_action(self):
         pressed_keys = list(self.current_keys_down)

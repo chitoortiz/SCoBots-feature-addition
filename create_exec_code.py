@@ -2,7 +2,6 @@ import os
 import glob
 import re
 import joblib
-import textwrap
 
 base_folder_path = 'resources/viper_extracts/extract_output'
 file_pattern = os.path.join(base_folder_path, '**', 'Tree-*best.viper')
@@ -33,8 +32,10 @@ def extract_tree_body_as_code(tree, feature_names, class_names, node=0, depth=1)
 
     code = (
         f"{'    ' * depth}if {condition}:\n"
+        f"{'    ' * (depth+1)}self.decision_path.append(\"{condition} => True\")\n"
         f"{left_code}"
         f"{'    ' * depth}else:\n"
+        f"{'    ' * (depth+1)}self.decision_path.append(\"{condition} => False\")\n"
         f"{right_code}"
     )
     return code
@@ -45,7 +46,6 @@ def build_final_script(env_name, vecnorm_path, focus_file_path, seed, tree_body_
 from utils.renderer import Renderer
 from scobi import Environment
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
-from pathlib import Path
 
 seed = {seed}
 vecnorm_path = "{vecnorm_path}"
@@ -64,9 +64,10 @@ env.norm_reward = False
 
 class Python_Model:
     def __init__(self):
-        pass
+        self.decision_path = []
 
     def predict(self, input_features, deterministic=True):
+        self.decision_path = []
         return [int(self.if_checks(input_features))], None
 
     def if_checks(self, input_features):
@@ -78,9 +79,9 @@ model = Python_Model()
 
 renderer = Renderer(env, model, ff_file_path, record=False, nb_frames=None)
 renderer.print_reward = False
-renderer.run()
+renderer.run_code_version()
         '''
-    # remove unwanted leading indentation
+    import textwrap
     final_script = textwrap.dedent(raw_script)
     return final_script
 
