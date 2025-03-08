@@ -54,9 +54,9 @@ from utils.renderer import Renderer
 from scobi import Environment
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 
-seed = 0
-vecnorm_path = Path(sys.path[1], "best_vecnormalize.pkl")
-ff_file_path = Path(sys.path[1], "pruned_freeway.yaml")
+seed = {seed}
+vecnorm_path = Path(sys.path[1], "{vecnorm_path}")
+ff_file_path = Path(sys.path[1], "{focus_file_path}")
 
 env = Environment("{env_name}", focus_dir="", focus_file=ff_file_path,
                 hide_properties=False,
