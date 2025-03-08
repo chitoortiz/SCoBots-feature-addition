@@ -18,6 +18,7 @@ def extract_tree_body_as_code(tree, feature_names, class_names, node=0, depth=1)
     feature_index = tree.tree_.feature[node]
     threshold = tree.tree_.threshold[node]
     condition = f"input_features[{feature_index}] <= {threshold:.2f}"
+    append_cond = f"{feature_index} <= {threshold:.2f}"
 
     left_code = extract_tree_body_as_code(
         tree, feature_names, class_names,
@@ -32,10 +33,10 @@ def extract_tree_body_as_code(tree, feature_names, class_names, node=0, depth=1)
 
     code = (
         f"{'    ' * depth}if {condition}:\n"
-        f"{'    ' * (depth+1)}self.decision_path.append(\"{condition} => True\")\n"
+        f"{'    ' * (depth+1)}self.decision_path.append(\"{append_cond} -> True\")\n"
         f"{left_code}"
         f"{'    ' * depth}else:\n"
-        f"{'    ' * (depth+1)}self.decision_path.append(\"{condition} => False\")\n"
+        f"{'    ' * (depth+1)}self.decision_path.append(\"{append_cond} -> False\")\n"
         f"{right_code}"
     )
     return code
@@ -43,6 +44,11 @@ def extract_tree_body_as_code(tree, feature_names, class_names, node=0, depth=1)
 # Build script for each tree
 def build_final_script(env_name, vecnorm_path, focus_file_path, seed, tree_body_code):
     raw_script = f'''\
+import sys
+import os
+# Get renderer import
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+sys.path.insert(0, parent_dir)
 from utils.renderer import Renderer
 from scobi import Environment
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv

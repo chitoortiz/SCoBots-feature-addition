@@ -165,7 +165,11 @@ class Renderer:
         # write each line of path
         if hasattr(self.model, 'decision_path'):
             line_height = 50
+            feature_names = self.env.get_vector_entry_descriptions()
             for line in self.model.decision_path:
+                parts = line.split(" ", 1)  # Split only at the first space
+                index = int(parts[0])
+                line = feature_names[index] + " " + parts[1]
                 self._draw_text(line, self.env_render_shape[0] + 10, y_offset, font_size=37)
                 y_offset += line_height
 
