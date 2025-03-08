@@ -46,6 +46,7 @@ def build_final_script(env_name, vecnorm_path, focus_file_path, seed, tree_body_
     raw_script = f'''\
 import sys
 import os
+from pathlib import Path        
 # Get renderer import
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 sys.path.insert(0, parent_dir)
@@ -53,9 +54,9 @@ from utils.renderer import Renderer
 from scobi import Environment
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 
-seed = {seed}
-vecnorm_path = "{vecnorm_path}"
-ff_file_path = "{focus_file_path}"
+seed = 0
+vecnorm_path = Path(sys.path[1], "best_vecnormalize.pkl")
+ff_file_path = Path(sys.path[1], "pruned_freeway.yaml")
 
 env = Environment("{env_name}", focus_dir="", focus_file=ff_file_path,
                 hide_properties=False,
