@@ -1,0 +1,16 @@
+mode: eval  # Options: train, eval, render
+
+game: Pong
+seed: 0
+env_num: 8  # Number of environments used for training
+
+reward: human  # Options: env, human, mixed (optional)
+prune: default  # Options: default, external (optional)
+
+rgb: false  # Use RGB observation space (optional)
+hud: false  # Use HUD objects (optional)
+
+progress: true  # Display progress bar during training (optional)
+
+times: 10  # Number of episodes for evaluation (only applicable in eval mode)
+record: false  # Whether to record rendered video (only applicable in render mode)
