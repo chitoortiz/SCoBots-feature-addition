@@ -14,27 +14,58 @@ def run_command(command):
 
 def main(config_path):
     config = load_config(config_path)
-    
     mode = config.get("mode", "train")
-    
+
+    base_cmd = f"-g {config['game']} -s {config['seed']}"
+
+    if config.get("reward"):
+        base_cmd += f" -r {config['reward']}"
+    if config.get("prune"):
+        base_cmd += f" -p {config['prune']}"
+    if config.get("exclude_properties", False):
+        base_cmd += " -x"
+    if config.get("hud", False):
+        base_cmd += " --hud"
+    if config.get("hackatari", False):
+        base_cmd += " --hackatari"
+    if config.get("mods"):
+        base_cmd += f" -mods {config['mods']}"
+
     if mode == "train":
-        # Prepare arguments for the training mode
-        command = f"python train.py -g {config['game']} -s {config['seed']} -env {config['env_num']} -r {config['reward']} --progress"
+        command = f"python train.py {base_cmd} -env {config['environments']}"
+        if config.get("progress", False):
+            command += " --progress"
+        if config.get("rgb", False):
+            command += " --rgb"
         run_command(command)
-    
+
     elif mode == "eval":
-        # Prepare arguments for the evaluation mode
-        command = f"python eval.py -g {config['game']} -s {config['seed']} -t {config['times']} -r {config['reward']} -p {config['prune']}"
+        command = f"python eval.py {base_cmd} -t {config['times']}"
+        if config.get("progress", False):
+            command += " --progress"
+        if config.get("rgb", False):
+            command += " --rgb"
+        if config.get("viper", False):
+            command += " --viper"
         run_command(command)
-    
+
     elif mode == "render":
-        # Prepare arguments for the render mode
-        command = f"python render_agent.py -g {config['game']} -s {config['seed']} -r human -p {config['prune']} --viper"
+        command = f"python render_agent.py {base_cmd}"
+        if config.get("record", False):
+            command += " --record"
+        if config.get("nb_frames", 0) > 0:
+            command += f" --nb_frames {config['nb_frames']}"
+        if config.get("print_reward", False):
+            command += " --print-reward"
+        if config.get("rgb", False):
+            command += " --rgb"
+        if config.get("viper", False):
+            command += " --viper"
         run_command(command)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config", nargs="?", default="configurations.yaml", help="Path to YAML config file")
     args = parser.parse_args()
-    
+
     main(args.config)
