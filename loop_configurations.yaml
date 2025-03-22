@@ -1,0 +1,33 @@
+mode: eval  # Options: train, eval, render
+
+games:
+  - Pong
+
+seeds:
+  - 0
+  - 1
+  - 2
+
+environments: 8  # Number of environments used for training
+
+rewards:
+  - human
+
+prune:
+  - default
+  - external
+
+rgb: 
+  - false
+
+hud: 
+  - false
+
+progress: true  # Display progress bar during training (optional)
+record: false  # Whether to record rendered video (only applicable in render mode)
+exclude_properties: false  # Exclude properties from feature vector (optional)
+nb_frames: 0  # Stop recording after a certain number of frames (only for render mode)
+print_reward: false  # Display the reward in the console (only for render mode)
+viper: false  # Evaluate the extracted viper tree instead of a checkpoint (only for render mode)
+mods: ""  # List of mods to use with Hackatari, separated by commas (optional)
+hackatari: false  # Use Hackatari as environment (optional)
