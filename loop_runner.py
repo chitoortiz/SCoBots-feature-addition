@@ -14,28 +14,24 @@ def run_command(command):
     subprocess.run(command, shell=True)
 
 def generate_combinations(config):
-    """Generate all combinations of parameters."""
-    games = config.get("games", ["Pong"])
+    """Generate all combinations of parameters for a game."""
+    game = config.get("game", "Pong")
     seeds = config.get("seeds", [0])
     rewards = config.get("rewards", ["env"])
-    prune = config.get("prune", [None, "default", "external"])  # Allow prune to be None
+    prune = config.get("prune", [None, "default", "external"])  # Optional prune settings
     rgb = config.get("rgb", [False])
     hud = config.get("hud", [False])
 
-    # Generate all combinations of the parameters
-    combinations = list(itertools.product(games, seeds, rewards, prune, rgb, hud))
+    combinations = list(itertools.product(seeds, rewards, prune, rgb, hud))
 
-    return combinations
+    return game, combinations
 
 def build_command(mode, game, seed, reward, prune, rgb, hud, config):
     """Build the command line for training, evaluation, or rendering."""
     command = f"-g {game} -s {seed} -r {reward}"
     
-    # Add optional prune parameter
     if prune:
         command += f" -p {prune}"
-
-    # Add other parameters
     if hud:
         command += " --hud"
     if rgb:
@@ -46,14 +42,16 @@ def build_command(mode, game, seed, reward, prune, rgb, hud, config):
         command += " --progress"
     if config.get("hackatari", False):
         command += " --hackatari"
-    if config.get("mods"):
-        command += f" -mods {config['mods']}"
-    
+        if config.get("mods"):
+            command += f" -mods {config['mods']}"
+
     # Mode-specific parameters
     if mode == "train":
         command += f" -env {config['environments']}"
     elif mode == "eval":
         command += f" -t {config.get('times', 10)}"
+        if config.get("version"):
+            command += f" -n {config['version']}"
     elif mode == "render":
         if config.get("record", False):
             command += " --record"
@@ -63,6 +61,8 @@ def build_command(mode, game, seed, reward, prune, rgb, hud, config):
             command += " --viper"
         if config.get("print_reward", False):
             command += " --print-reward"
+        if config.get("version"):
+            command += f" -n {config['version']}"
 
     return command
 
@@ -89,9 +89,9 @@ def render_with_combination(config, game, seed, reward, prune, rgb, hud):
 
 def run_mode(config, mode):
     """Run training, evaluation, or render mode."""
-    combinations = generate_combinations(config)
+    game, combinations = generate_combinations(config)  # Get single game and parameter combinations
     
-    for game, seed, reward, prune, rgb, hud in combinations:
+    for seed, reward, prune, rgb, hud in combinations:
         if mode == "train":
             train_with_combination(config, game, seed, reward, prune, rgb, hud)
         elif mode == "eval":
