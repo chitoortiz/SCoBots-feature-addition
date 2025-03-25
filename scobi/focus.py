@@ -29,12 +29,12 @@ class Focus():
         self.FEATURE_VECTOR_BACKMAP = []
 
         self.PROPERTY_COMPUTE_LAYER = []
-        self.FUNC_COMPUTE_LAYER = [] 
+        self.FUNC_COMPUTE_LAYER = []
         self.PROPERTY_COMPUTE_LAYER_SIZE = 0
         self.FUNC_COMPUTE_LAYER_SIZE = 0
         self.CURRENT_PROPERTY_COMPUTE_LAYER = []
         self.CURRENT_FUNC_COMPUTE_LAYER = []
-        
+
         self.FEATURE_VECTOR_SIZE = 0
         self.OBSERVATION_SIZE = 0
         self.CURRENT_FEATURE_VECTOR = []
@@ -60,6 +60,10 @@ class Focus():
         self.generate_function_set()
         self.last_obs_vector = []
         self.first_pass = True
+        # Params for custom rew functions
+        self.ale = None
+        self.prev_carry_value = None # e.g. oxygenlevel in seaquest
+        self.prev_carry_value2 = None # e.g. lives to check if env reset due to death
 
         fofiles_dir_path = Path.cwd() / Path(fofiles_dir_name)
         fofiles_dir_path.mkdir(exist_ok=True)
@@ -86,10 +90,10 @@ class Focus():
             self.load_focus_file(fofile_path)
             logger.GeneralInfo("Default Focus File is valid. Imported.")
             self.FOCUSFILEPATH = fofile_path
-        
+
         if self.REWARD_SHAPING != 0: # set respective reward shaping
             if self.REWARD_SHAPING == 1:
-                rewstring = "scobi" 
+                rewstring = "scobi"
             elif self.REWARD_SHAPING == 2:
                 rewstring = "env + scobi"
             else:
@@ -110,13 +114,13 @@ class Focus():
             logger.GeneralInfo("Object properties are %s from the observation vector." % colored("excluded", "light_yellow"))
         else:
             logger.GeneralInfo("Object properties are %s in the observation vector." % colored("included", "light_green"))
-    
+
     def generate_ns_repr_set(self):
         for k,v in self.MAX_NB_OBJECTS.items():
             # match with first of the object
             obj = self.INIT_OBJECTS[self.INIT_OBJECT_NAMES.index(k)]
             # extract meanings and types of ns_repr
-            # iterate over number of objects of current kind 
+            # iterate over number of objects of current kind
             for i in range( v):
                 self.OBJECT_NAMES.append(k+str(i+1))
                 ns_meanings = [[meaning, k+str(i+1)] for meaning in obj._ns_meaning]
@@ -167,7 +171,7 @@ class Focus():
     #             if o.name == name:
     #                 return o
     #         return None
-        
+
     # def get_initial_object_by_name(self, name, objs):
     #     initial_name = name[:-1] + "1"
     #     for o in objs:
@@ -189,7 +193,7 @@ class Focus():
         out_dict = {
             k : {
                 "in": [x[1] for x in v["expects"]],
-                "description": v["returns"][1] 
+                "description": v["returns"][1]
             }
         }
         return out_dict
@@ -396,7 +400,7 @@ class Focus():
         self.FUNC_COMPUTE_LAYER_SIZE = len(self.FUNC_COMPUTE_LAYER)
         # self.CURRENT_PROPERTY_COMPUTE_LAYER = [0 for _ in range(self.PROPERTY_COMPUTE_LAYER_SIZE)]
         self.CURRENT_FUNC_COMPUTE_LAYER = [0 for _ in range(self.FUNC_COMPUTE_LAYER_SIZE)]
-    
+
     def ns_repr_list_to_func_input(self, ns_repr_list):
         # might be slow
         out_list = []
@@ -409,7 +413,7 @@ class Focus():
             out_list.append(tuple(ns_repr_list[idx:idx+arg_len]))
             idx += arg_len
         return out_list
-    
+
     def generate_history_idxs(self):
         # finds the indices of position properties and the indices where the history should be inserted
         # (in obs)
@@ -434,7 +438,7 @@ class Focus():
 
     def add_history_to_obs(self, obs):
         """
-        Transforms the observation from OC_Atari to include the history of the positions
+Transforms the observation from OC_Atari to include the history of the positions
         """
         # obs shape: 2,n_props (2 buffers, n properties)
         # should be: 1,n_props+(num_position_history*4)
@@ -486,7 +490,7 @@ class Focus():
                 for ff in f:
                     self.CURRENT_FEATURE_VECTOR_PROPS[idx] = ff
                     idx += 1
-            
+
             # unpack function layer
             idx = 0
             for f in self.CURRENT_FUNC_COMPUTE_LAYER:
@@ -503,7 +507,7 @@ class Focus():
                 reward = self.REWARD_FUNC(self.last_obs_vector)
             else:
                 reward = 0
-            
+
             out = self.last_obs_vector
             if self.HIDE_PROPERTIES:
                 out = out[self.FEATURE_VECTOR_PROPS_SIZE:]
@@ -515,7 +519,7 @@ class Focus():
             for ff in f:
                 self.CURRENT_FEATURE_VECTOR_PROPS[idx] = ff
                 idx += 1
-        
+
         # unpack function layer
         idx = 0
         for f in self.CURRENT_FUNC_COMPUTE_LAYER:
@@ -528,7 +532,7 @@ class Focus():
         # objects are distinguished by order, not id
         # if object id=1 on position 1 becomes invisible, and obj id=2, pos=2 remains visible
         # obj with id=2 will be pos=1 and objc id=1 will be first position of hidden objects
-        for i in range(self.FEATURE_VECTOR_SIZE): 
+        for i in range(self.FEATURE_VECTOR_SIZE):
             if out[i] is None:
                 out[i] = 0 #dont freeze. turns out feezing was very bad
                 #out[i] = self.last_obs_vector[i]
@@ -536,7 +540,7 @@ class Focus():
             else:
                 self.CURRENT_FREEZE_MASK[i] = 1
         self.last_obs_vector = out
-        
+
         if self.REWARD_SHAPING != 0:
             reward = self.REWARD_FUNC(out)
         else:
@@ -544,15 +548,60 @@ class Focus():
         if self.HIDE_PROPERTIES:
             out = out[self.FEATURE_VECTOR_PROPS_SIZE:]
         return np.asarray(out, dtype=np.float32), reward
-    
+
     def get_feature_vector_description(self):
         # fv = self.PARSED_PROPERTIES + self.PARSED_FUNCTIONS
         fv = self.NS_REPR_LIST + self.PARSED_FUNCTIONS
         return (fv, np.array(self.FEATURE_VECTOR_BACKMAP))
-    
+
     def get_current_freeze_mask(self):
         return self.CURRENT_FREEZE_MASK
-    
+
+    def _seaquest_oxygen_shaping(self):
+        def custom_func(fv):
+            if self.ale is None:
+                return 0.0
+            shaped_reward = 0.0
+
+            ram = self.ale.getRAM()
+            current_oxy = ram[102]  # 0..64
+            # reward staying alive
+            shaped_reward += 0.01
+            current_lives = self.ale.lives()
+
+            if self.prev_carry_value is None:
+                # first step
+                self.prev_carry_value = current_oxy
+                self.prev_carry_value2 = current_lives
+                return shaped_reward
+
+            # detect life lost
+            if self.prev_carry_value2 is not None and current_lives < self.prev_carry_value2:
+                shaped_reward -= 20.0
+                # reset oxygen
+                self.prev_carry_value = None
+            else:
+                # oxygen-based logic
+                if self.prev_carry_value < 2 and current_oxy > 50:
+                    shaped_reward -= 10.0
+
+                # low-oxygen penalty
+                threshold_low = 15
+                if current_oxy < threshold_low:
+                    deficit = threshold_low - current_oxy
+                    shaped_reward -= 0.3 * deficit
+
+                # bonus refilling
+                if self.prev_carry_value < 20 and current_oxy > 40:
+                    shaped_reward += 5.0
+
+                self.prev_carry_value = current_oxy
+
+            # store current lives for next step
+            self.prev_carry_value2 = current_lives
+            return shaped_reward
+        return custom_func
+
     def get_reward_func(self, env):
         fv_description, fv_backmap = self.get_feature_vector_description()
         i = 0
@@ -594,7 +643,7 @@ class Focus():
                     input2 = feature_signature[1]
                     if input1[0] == "POSITION" and input1[1] == "Player1" and input2[0] == "POSITION" and input2[1] == "Ladder1":
                         distance_idxs = np.where(fv_backmap == i-1)[0]
-            
+
             if not (player_idxs.any() and distance_idxs.any()):
                 return None
             # reward when player achieves new y-coord low and goes to ladder
@@ -609,7 +658,7 @@ class Focus():
                     if delta > 0:
                         self.reward_threshold = abs(p_entries[1])
                         y_coord_reward = delta # reward when player achieves new y-coord low an
-                
+
                 d_entries = fv[d_idxs[0]:d_idxs[-1]+1]
                 self.reward_history[0] = self.reward_history[1]
                 self.reward_history[1] = abs(d_entries[0]) # x-dist
@@ -664,5 +713,21 @@ class Focus():
                     self.reward_subgoals = 0
                 return self.reward_subgoals + euc_velocity_flag + player_flag_distance_delta
             return reward
+        elif "Seaquest" in env:
+            return self._seaquest_oxygen_shaping()
         else:
             return "norew"
+
+    def reset_carry_value(self):
+        self.prev_carry_value = None
+        self.prev_carry_value2 = None
+
+    def compose_reward(self, scobi_reward, env_reward):
+        #Merge environment reward with scobi shaping
+        if self.REWARD_SHAPING == 2:
+            return env_reward + scobi_reward
+        elif self.REWARD_SHAPING == 1:
+            return scobi_reward
+        else:
+            return env_reward
+            
