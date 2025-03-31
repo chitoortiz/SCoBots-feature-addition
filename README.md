@@ -1,80 +1,56 @@
-# Successive Concept Bottleneck Agent SCoBot
-## Installation And Requirements
-Scobots needs OCAtari and the local var ```'SCOBI_OBJ_EXTRACTOR'``` set as either ```OC_Atari``` or ```Noisy_OC_Atari```. If not set it will automatically resort to ```OC_Atari```. Python version ```3.8.x``` is recommended if planning to use our RGB agents.
-
-Without agents SCoBots are not usable, so you can either download some pre-trained agents from huggingface using the ```download_agents.sh``` script, or train one yourself, as explained in the usage-manual.
-
-Due to issues with the ```autorom``` module versions, ```stable_baselines3[extras]``` has to be installed manually. The setup is completed with
+# ReadMe for SCoBots Extension
+## Setup
+Perform the following commands inside of the project folder (and virtual environment if desired) for complete executability
 ```bash
-pip install -r requirements.txt && pip install "stable-baselines3[extras]==2.0.0"
-```
-
-Note that this version of SCoBots makes use of OC_Atari 2.0 and its neuro-symbolic state.
-
-## How To Use
-There are three Python files that can be run directly. Each of them has a ```-h``` help flag.
-
-### Downloading Agents
-The following commands will manually download and extract the agents to the ```resources``` folder.
-
-For neural and tree-based agents:
-```bash
-# Download the agents (only seed0)
-wget https://hessenbox.tu-darmstadt.de/dl/fi47F21YBzVZBRfGPKswumb7/resources_seed0.zip
-unzip resources_seed0.zip
-```
-**or** 
-```bash
-# Download the agents (all seeds)
-wget https://hessenbox.tu-darmstadt.de/dl/fiPLH36Zwi8EVv8JaLU4HpE2/resources_all.zip
-unzip resources_all.zip
-```
-
-### Displaying A Trained Agent
-To visualize a trained agent playing a specified game the render_agent.py file can be executed.
-Running the file will open and display the game played as a gif.
-
-The following example demonstrates the usage of the previously trained + evaluated agent:
-```bash
-python render_agent.py -g Pong -s 0 -r human -p default
-```
-Similar for decision-tree agents:
-```bash
-python render_agent.py -g Pong -s 0 -r human -p default --viper
+pip install -r requirements.txt
 ```
 
 
-### Training An Agent
-Execute the ```train.py``` file to train an agent for a given game, with a given number of cores and a specified seed.
-The following example demonstrates the usage:
+## Extented collection of agents
+All newly trained agents can be found inside of ```resources/checkpoints```
+These agents are trained for games of an unreleased OCATARI version. Therefore if these agents shall be evaluated the following commands are necessary to ensure the correct ALE are available:
 ```bash
-python train.py -g Pong -s 0 -env 8 -r env --progress
-```
-The first three flags are required as input. With the help option the other flags can be displayed.
-### Evaluating An Agent
-The evaluate.py file evaluates an already trained agent, displaying the results afterwards and saving it in a dedicated file.
-
-The following example demonstrates the usage of the previously trained agent:
-```bash
-python eval.py -g Pong -s 0 -t 10 -r env
+git clone --branch develop https://github.com/k4ntz/OC_Atari
+cd OC_Atari
+pip install -e .
 ```
 
-## Usage Of Checkpoints And Example Workflow
-Checkpoints are saved under ```resources/checkpoints```.
-Each folder states in its name explicitly the training specifications.
-So e.g. the folder ```Pong_seed0_reward-human_oc-n2``` denotes that the trained agent was trained with a ```seed``` of 0, its reward model is the ```human``` option, it is an ```object centered``` agent,  and that it is the second agent trained with these values.
-So a usage with this agent would look like ```python eval.py -g Pong -s 0 -r human``` or ```python render_agent.py -g Pong -s 0 -r human```. This automatically picks the respectively latest trained agent named according to the values. For using a specific version the version flag has to be added.
-
-With the checkpoint being stored accordingly named in the checkpoints folder, it will automaticlly be loaded and there is no need to provide an explicit storage path.
-
-Unless explictily stated via ```--rgb```, it will always be automatically resorted to object centric checpoints.
-
-Furthermore during the training process regularly checkpoints will be made and saved. These are saved separately in a sub-folder named ```training_checkpoints``` next to the ```best_model.zip``` and ```best_vecnormalize.pkl``` which are saved after a complete successful training process in. 
-
-## Extracting Via Viper
-If desired an extraction from a saved agent can be performed and saved under the folder ```viper_extracts```. An example usage would be:
+Example command to watch RoboTank:
 ```bash
-python viper_extract.py -i Pong_seed0_reward-env_oc -r viper
+python render_agent.py -g Robotank -s 0 -r env
 ```
-Otherwise one can also hand a direct path after the ```-i``` flag. In this case though it is a MUST that the corresponding focusfile is correctly named inside of the given path next to the extracted tree.
-The console prints what exactly the extractor is looking for.
+
+## Creating executable python files from viper trees
+Run the ```viper_to_trees.py``` file to create an executable python file for each viper tree existing in ```resources/viper_extracts/extract_output```.
+Those can be obtained by running the viper extraction as detailed in the original readMe of the SCoBots project.
+
+To execute one of these files with the visualization of the current tree decisions, just execute one of the created files inside of the corresponding folder in ```resources/checkpoints```.
+
+## Using the configurations
+To use the SCoBots framework with configurations, just fill in the desired values/parameters inside of the yaml file and execute
+```bash
+python scobots_runner.py
+```
+
+if multiple instances with e.g. different seeds shall be execute use "loop" version of both
+
+
+## Usage of HackAtari
+HackAtari is integrated as an optional switch. the only necessary thing is to enable it via a flag in the command line, or in the configurations file.
+To view and edit the mods, refer to the targeted game inside of ```scobi/environments/hackatari/games```
+
+One example usage is running any Freeway agent with manipulated cars:
+```bash
+python render_agent.py -g Freeway -r env -s 0 -p default --hackatari -mods speed1
+```
+
+## Inspect the custom Seaquest Agent
+To see the Seaquest agent being able to refill oxygen run the following commands. The installation of the specific OCAtari verison is necessary because this agent was trained on the released version of OCAtari and executing it on the develop branch version might cause errors:
+```bash
+pip install ocatari==2.0.0
+```
+
+Afterwards the agent can simply be viewed via:
+```bash
+python render_agent.py -g Seaquest -r env -s 0 -p default
+```
