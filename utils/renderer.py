@@ -59,7 +59,7 @@ class Renderer:
 
         if record:
             if _screen_recorder_imported:
-                self._screen_recorder = ScreenRecorder(60)
+                self._screen_recorder = ScreenRecorder(120)
                 self._screen_recorder.start_rec()
                 self._recording = True
                 self.nb_frames = nb_frames
@@ -192,7 +192,6 @@ class Renderer:
         filename = Path.joinpath(self.path, "recordings")
         filename.mkdir(parents=True, exist_ok=True)
         self._screen_recorder.stop_rec() # stop recording
-        print(self.env.spec.name)
         if self.rgb_agent:
             filename = Path.joinpath(filename, f"{self.env.spec.name}.avi")
         else:
