@@ -65,7 +65,7 @@ def main(config_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", nargs="?", default="configurations.yaml", help="Path to YAML config file")
+    parser.add_argument("config", nargs="?", default="runner_configurations.yaml", help="Path to YAML config file")
     args = parser.parse_args()
 
     main(args.config)
