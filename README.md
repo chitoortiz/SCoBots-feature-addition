@@ -7,7 +7,13 @@ pip install -r requirements.txt
 
 
 ## Extented collection of agents
-All newly trained agents can be found inside of ```resources/checkpoints```
+All agents need to be stored accordingly in ```resources/checkpoints```.
+
+All newly trained agents and some more can be downloaded via the following command executed inside of the repositories folder:
+```bash
+curl -L "https://hessenbox.tu-darmstadt.de/getlink/fiRmSTLCkMww8nQMd3naPnm6/checkpoints.zip" -o resources/checkpoints/temp.zip && unzip -o resources/checkpoints/temp.zip -d resources/checkpoints && rm resources/checkpoints/temp.zip
+```
+ 
 These agents are trained for games of an unreleased OCATARI version. Therefore if these agents shall be evaluated the following commands are necessary to ensure the correct ALE are available:
 ```bash
 git clone --branch develop https://github.com/k4ntz/OC_Atari
@@ -53,4 +59,9 @@ pip install ocatari==2.0.0
 Afterwards the agent can simply be viewed via:
 ```bash
 python render_agent.py -g Seaquest -r env -s 0 -p default
+```
+
+To compare it to a "regular" seaquest agent just execute the following command:
+```bash
+python render_agent.py -g Seaquest -r env -s 0 -p default -n 0
 ```
