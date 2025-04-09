@@ -28,9 +28,20 @@ python render_agent.py -g Robotank -s 0 -r env
 
 ## Creating executable python files from viper trees
 Run the ```viper_to_trees.py``` file to create an executable python file for each viper tree existing in ```resources/viper_extracts/extract_output```.
-Those can be obtained by running the viper extraction as detailed in the original readMe of the SCoBots project.
+Those can be obtained by running the viper extraction as detailed in the original readMe of the SCoBots project, and being placed at the correct location. The command for this is e.g.:
+```bash
+wget https://hessenbox.tu-darmstadt.de/dl/fi47F21YBzVZBRfGPKswumb7/resources_seed0.zip
+unzip resources_seed0.zip
+```
+
+If checkpoints/viper extractions are available just run
+```bash
+python create_exec_code.py
+```
 
 To execute one of these files with the visualization of the current tree decisions, just execute one of the created files inside of the corresponding folder in ```resources/checkpoints```.
+
+The game speed of the renderer for these files has been reduced to make the if-clauses readable. This is artificial through manual delay and can be changed in the renderer file if desired.
 
 ## Using the configurations
 To use the SCoBots framework with configurations, just fill in the desired values/parameters inside of the yaml file and execute

@@ -74,7 +74,7 @@ class Renderer:
         pygame.display.set_caption("OCAtari Environment")
         sample_image = np.repeat(np.repeat(np.swapaxes(sample_image, 0, 1), self.zoom, axis=0), self.zoom, axis=1)
         self.env_render_shape = sample_image.shape[:2]
-        if self._code_version is not None:
+        if self._code_version:
             height, width = sample_image.shape[:2]
             window_size = (width + 300, self.env_render_shape[:2][1])
         else:
@@ -110,7 +110,6 @@ class Renderer:
             if self.rgb_agent:
                 self.clock.tick(self.fps)
         pygame.quit()
-
 
     def run_code_version(self):
         self.running = True
@@ -172,7 +171,6 @@ class Renderer:
                 line = feature_names[index] + " " + parts[1]
                 self._draw_text(line, self.env_render_shape[0] + 10, y_offset, font_size=37)
                 y_offset += line_height
-
 
     def _draw_text(self, text, x, y, color=(255,255,255), font_size=18):
         font = pygame.font.SysFont(None, font_size)
@@ -283,4 +281,7 @@ class Renderer:
         frame_surface = pygame.Surface(self.env_render_shape)
         pygame.pixelcopy.array_to_surface(frame_surface, frame)
         self.window.blit(frame_surface, (0, 0))
-        self.clock.tick(60)
+        if self._code_version:
+            self.clock.tick(10)
+        else:
+            self.clock.tick(60)

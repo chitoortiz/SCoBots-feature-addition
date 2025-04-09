@@ -84,7 +84,7 @@ class Python_Model:
 
 model = Python_Model()
 
-renderer = Renderer(env, model, Path(sys.path[1]), record=False, nb_frames=None)
+renderer = Renderer(env, model, Path(sys.path[1]), record=False, nb_frames=None, code_version=True)
 renderer.print_reward = False
 renderer.run_code_version()
         '''
