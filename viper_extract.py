@@ -151,7 +151,7 @@ def main():
 
     env = Environment(env_str,
                       focus_dir=focus_dir,
-                      focus_file=pruned_ff_name, hackatari=opts.hackatri, mods=mods)
+                      focus_file=pruned_ff_name, hackatari=opts.hackatari, mods=mods)
     _, _ = env.reset(seed=EVAL_ENV_SEED)
 
 
