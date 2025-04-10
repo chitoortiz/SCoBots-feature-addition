@@ -11,7 +11,7 @@ All agents need to be stored accordingly in ```resources/checkpoints```.
 
 All newly trained agents and some more can be downloaded via the following command executed inside of the repositories folder:
 ```bash
-mkdir -p resources/checkpoints && curl -L "https://hessenbox.tu-darmstadt.de/getlink/fiRmSTLCkMww8nQMd3naPnm6/checkpoints.zip" -o resources/checkpoints/temp.zip && unzip -o resources/checkpoints/temp.zip -d resources/checkpoints && rm resources/checkpoints/temp.zip
+mkdir -p resources/checkpoints && curl -L "https://hessenbox.tu-darmstadt.de/dl/fiRmSTLCkMww8nQMd3naPnm6/checkpoints.zip" -o resources/checkpoints/temp.zip && unzip -o resources/checkpoints/temp.zip -d resources/checkpoints && rm resources/checkpoints/temp.zip
 ```
  
 These agents are trained for games of an unreleased OCATARI version. Therefore if these agents shall be evaluated the following commands are necessary to ensure the correct ALE are available:
